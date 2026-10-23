@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load icons %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="hero-banner mb-4">
+  <h3 class="fw-bold mb-1">{% icon "shield-lock" %} System Administrator Dashboard</h3>
+  <p class="mb-0 opacity-75">Platform-wide statistics and management.</p>
+</div>
+<div class="row g-3 mb-4">
+  {% include "partials/_stat_card.html" with icon="person-lines-fill" color="bg-icon-blue" label="Total Passengers" value=total_passengers %}
+  {% include "partials/_stat_card.html" with icon="people" color="bg-icon-navy" label="Total Staff" value=total_staff %}
+  {% include "partials/_stat_card.html" with icon="airplane" color="bg-icon-purple" label="Total Flights" value=total_flights %}
+  {% include "partials/_stat_card.html" with icon="ticket-perforated" color="bg-icon-green" label="Total Bookings" value=total_bookings %}
+  {% include "partials/_stat_card.html" with icon="exclamation-triangle" color="bg-icon-amber" label="Total Disruptions" value=total_disruptions %}
+  {% include "partials/_stat_card.html" with icon="cash-coin" color="bg-icon-red" label="Total Refunds" value=total_refunds %}
+</div>
+<div class="row g-3 mb-4">
+  {% include "partials/_stat_card.html" with icon="arrow-repeat" color="bg-icon-blue" label="Total Rebookings" value=total_rebookings %}
+  {% include "partials/_stat_card.html" with icon="gift" color="bg-icon-green" label="Total Vouchers" value=total_vouchers %}
+</div>
+<div class="row g-3">
+  <div class="col-md-3"><a href="{% url 'core:manage_staff' %}" class="btn btn-outline-primary w-100 py-3">{% icon "people" class_="d-block fs-3 mb-1" %}Manage Staff</a></div>
+  <div class="col-md-3"><a href="{% url 'core:manage_passengers' %}" class="btn btn-outline-secondary w-100 py-3">{% icon "person-lines-fill" class_="d-block fs-3 mb-1" %}Manage Passengers</a></div>
+  <div class="col-md-3"><a href="{% url 'core:system_settings' %}" class="btn btn-outline-warning w-100 py-3">{% icon "gear" class_="d-block fs-3 mb-1" %}System Settings</a></div>
+  <div class="col-md-3"><a href="{% url 'core:audit_logs' %}" class="btn btn-outline-dark w-100 py-3">{% icon "journal-text" class_="d-block fs-3 mb-1" %}Audit Logs</a></div>
+</div>
+{% endblock %}

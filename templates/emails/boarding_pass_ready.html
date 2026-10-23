@@ -1,0 +1,7 @@
+{% extends "emails/_base_email.html" %}
+{% block body %}
+<h3>Your Boarding Pass is Ready</h3>
+<p>Dear {{ passenger.full_name }},</p>
+<p>Your boarding pass for flight <strong>{{ flight.flight_number }}</strong> ({{ flight.route_label }}) is attached to this email as a PDF.</p>
+<p>PNR: <strong>{{ booking.pnr }}</strong> | Seat: {{ passenger.seat_number }}</p>
+{% endblock %}

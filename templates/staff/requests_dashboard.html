@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load icons aeroflow_extras %}
+{% block title %}Recovery Requests{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3">{% icon "life-preserver" class_="text-primary" %} Passenger Recovery Requests</h4>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white fw-bold">Pending Rebooking Requests</div>
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead class="table-light"><tr><th>Passenger</th><th>Original PNR</th><th>Group Size</th><th>Requested Flight</th><th>Requested At</th><th></th></tr></thead>
+      <tbody>
+        {% for r in pending_rebookings %}
+        <tr>
+          <td>{{ r.passenger.get_full_name|default:r.passenger.username }}</td>
+          <td>{{ r.original_booking.pnr }}</td>
+          <td>{{ r.original_booking.passenger_count }} pax</td>
+          <td>{{ r.requested_flight.flight_number }} ({{ r.requested_flight.route_label }}) - {{ r.requested_flight.available_seats }} seats left</td>
+          <td>{{ r.requested_at|date:"d M, H:i" }}</td>
+          <td class="d-flex gap-1">
+            <form method="post" action="{% url 'recovery:staff_approve_rebooking' r.pk %}">{% csrf_token %}<button class="btn btn-sm btn-success">Approve</button></form>
+            <form method="post" action="{% url 'recovery:staff_reject_rebooking' r.pk %}">{% csrf_token %}
+              <input type="hidden" name="remarks" value="Rejected by staff">
+              <button class="btn btn-sm btn-outline-danger">Reject</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}<tr><td colspan="6" class="text-center text-muted py-3">No pending rebooking requests.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if recently_processed_rebookings %}
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white fw-bold">Recently Processed Rebooking Requests</div>
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead class="table-light"><tr><th>Passenger</th><th>Original PNR</th><th>Requested Flight</th><th>Status</th><th>Processed By</th><th>Processed At</th></tr></thead>
+      <tbody>
+        {% for r in recently_processed_rebookings %}
+        <tr>
+          <td>{{ r.passenger.get_full_name|default:r.passenger.username }}</td>
+          <td>{{ r.original_booking.pnr }}{% if r.new_booking %} &rarr; {{ r.new_booking.pnr }}{% endif %}</td>
+          <td>{{ r.requested_flight.flight_number }} ({{ r.requested_flight.route_label }})</td>
+          <td><span class="badge bg-{{ r.status|status_badge }}">{{ r.get_status_display }}</span></td>
+          <td>{{ r.processed_by.get_full_name|default:r.processed_by.username|default:"-" }}</td>
+          <td class="small">{{ r.processed_at|date:"d M, H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-bold">Pending Refund Requests</div>
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead class="table-light"><tr><th>Refund ID</th><th>Passenger</th><th>Booking</th><th>Amount</th><th>Reason</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for refund in pending_refunds %}
+        <tr>
+          <td>{{ refund.refund_id }}</td>
+          <td>{{ refund.passenger.get_full_name|default:refund.passenger.username }}</td>
+          <td>{{ refund.booking.pnr }}</td>
+          <td>Rs. {{ refund.requested_amount }}</td>
+          <td class="small">{{ refund.reason|truncatechars:60 }}</td>
+          <td>
+            <form method="post" action="{% url 'recovery:staff_update_refund' refund.pk %}" class="d-flex gap-1">
+              {% csrf_token %}
+              <select name="status" class="form-select form-select-sm" style="width:130px;">
+                <option value="APPROVED">Approve</option>
+                <option value="PROCESSING">Processing</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="REJECTED">Reject</option>
+              </select>
+              <button class="btn btn-sm btn-primary">Update</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}<tr><td colspan="6" class="text-center text-muted py-3">No pending refund requests.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

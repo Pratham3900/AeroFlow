@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load icons %}
+{% block title %}System Settings{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3">{% icon "gear" class_="text-primary" %} System Settings</h4>
+<p class="text-muted small">Business rules such as the delay-recovery threshold and voucher amounts are configured here - not hard-coded in the application.</p>
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      {% for setting in settings_qs %}
+      <div class="row g-2 mb-3 align-items-center">
+        <div class="col-md-4"><label class="form-label fw-semibold">{{ setting.key }}</label></div>
+        <div class="col-md-8"><input type="text" name="setting_{{ setting.key }}" value="{{ setting.value }}" class="form-control"></div>
+      </div>
+      {% endfor %}
+      <button class="btn btn-primary">Save Settings</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

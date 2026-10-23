@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load icons %}
+{% load aeroflow_extras %}
+{% block title %}My Vouchers{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3">{% icon "gift" class_="text-primary" %} My Vouchers</h4>
+<div class="row g-3">
+  {% for v in vouchers %}
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <span class="fw-bold">{{ v.get_voucher_type_display }}</span>
+          <span class="badge bg-{{ v.status|status_badge }}">{{ v.get_status_display }}</span>
+        </div>
+        <p class="text-muted small mb-1">Code: {{ v.voucher_code }}</p>
+        <p class="mb-1">Value: <strong>Rs. {{ v.amount }}</strong></p>
+        <p class="small text-muted">Booking: {{ v.booking.pnr }} &middot; Expires {{ v.expiry_date }}</p>
+        <a href="{% url 'vouchers:download' v.pk %}" target="_blank" class="btn btn-sm btn-outline-primary w-100">Download PDF</a>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <p class="text-muted">No vouchers issued yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

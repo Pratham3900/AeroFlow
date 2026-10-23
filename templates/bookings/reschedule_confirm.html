@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load icons %}
+{% block title %}Confirm Reschedule{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-bold">{% icon "arrow-repeat" %} Confirm Reschedule</div>
+      <div class="card-body">
+        <p><strong>From:</strong> {{ booking.flight.flight_number }} on {{ booking.flight.departure_date }}</p>
+        <p><strong>To:</strong> {{ new_flight.flight_number }} on {{ new_flight.departure_date }} at {{ new_flight.departure_time }}</p>
+        <p><strong>Passengers moving together:</strong> {{ booking.passenger_count }}</p>
+        {% if fare_difference > 0 %}
+        <div class="alert alert-warning">An additional fare of <strong>Rs. {{ fare_difference }}</strong> applies for this change.</div>
+        {% elif fare_difference < 0 %}
+        <div class="alert alert-info">This flight is cheaper; no extra charge will apply.</div>
+        {% endif %}
+        <form method="post">
+          {% csrf_token %}
+          <button class="btn btn-primary w-100">Confirm Reschedule</button>
+          <a href="{% url 'bookings:reschedule_search' booking.pk %}" class="btn btn-outline-secondary w-100 mt-2">Back</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

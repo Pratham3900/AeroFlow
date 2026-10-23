@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load widget_tweaks icons aeroflow_extras %}
+{% block title %}Book Flight {{ flight.flight_number }}{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3">{% icon "ticket-perforated" class_="text-primary" %} Book Flight {{ flight.flight_number }}</h4>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+      <div>
+        <div class="route-badge fs-5">{{ flight.route_label }}</div>
+        <div class="text-muted small">{{ flight.departure_date }} &middot; Departs {{ flight.departure_time }} &middot; {{ flight.available_seats }} seats left</div>
+      </div>
+      <span class="badge bg-{{ flight.status|status_badge }} status-badge">{{ flight.get_status_display }}</span>
+    </div>
+    <div class="row g-2 small text-muted">
+      <div class="col-md-6">
+        <strong>{{ flight.origin.city }} ({{ flight.origin.code }})</strong> - Terminal {{ flight.origin_terminal|default:"TBD" }}, Gate {{ flight.origin_gate|default:"TBD" }}
+      </div>
+      <div class="col-md-6">
+        <strong>{{ flight.destination.city }} ({{ flight.destination.code }})</strong> - Terminal {{ flight.destination_terminal|default:"TBD" }}, Gate {{ flight.destination_gate|default:"TBD" }}
+      </div>
+      <div class="col-md-6">Aircraft: {{ flight.aircraft.name|default:"Not assigned" }}</div>
+      <div class="col-md-6">Categories: {% for c in categories %}{{ c.name }}{% if not forloop.last %}, {% endif %}{% empty %}Economy{% endfor %}</div>
+    </div>
+  </div>
+</div>
+
+<form method="post" id="booking-form">
+  {% csrf_token %}
+
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-white fw-bold">Booking Contact</div>
+        <div class="card-body">
+          {% for field in contact_form %}
+          <div class="mb-2">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field|add_class:"form-control" }}
+            {% if field.errors %}<div class="text-danger small">{{ field.errors }}</div>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="card shadow-sm" id="passenger-counts-form">
+        <div class="card-header bg-white fw-bold">Passengers</div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-4">
+              <label class="form-label small">Adults</label>
+              {{ count_form.adults|add_class:"form-select" }}
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Children</label>
+              {{ count_form.children|add_class:"form-select" }}
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Infants</label>
+              {{ count_form.infants|add_class:"form-select" }}
+            </div>
+          </div>
+          {% if count_form.non_field_errors %}<div class="text-danger small mt-2">{{ count_form.non_field_errors }}</div>{% endif %}
+          <hr>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted small">Estimated Total</span>
+            <strong id="fare-estimate" data-fare-url="{% url 'bookings:fare_estimate' flight.pk %}">select seats to see fare</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm mt-3" id="seat-map-panel">
+        <div class="card-header bg-white fw-bold">Select Seats</div>
+        <div class="card-body">
+          <div id="seat-map" data-seat-map-url="{% url 'bookings:seat_map_data' flight.pk %}">
+            <p class="text-muted small">Loading seat map...</p>
+          </div>
+          <div id="seat-map-legend" class="seat-map-legend"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white fw-bold">Passenger Details</div>
+        <div class="card-body" id="passenger-forms-container">
+          <!-- populated by static/js/app.js based on the counts on the left -->
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary w-100 mt-3">{% icon "check" %} Confirm Booking</button>
+      <p class="text-muted small text-center mt-2">You'll receive a Booking Receipt immediately. Your boarding pass is generated automatically once the airline opens boarding for this flight.</p>
+    </div>
+  </div>
+</form>
+
+<template id="passenger-form-template">
+  <fieldset class="border rounded p-3 mb-3">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <legend class="passenger-form-label fs-6 fw-semibold mb-2" style="width:auto;"></legend>
+      <button type="button" class="btn btn-sm btn-outline-primary select-seat-btn">
+        Seat: <span class="passenger-seat-display">No seat selected</span>
+      </button>
+    </div>
+    <input type="hidden" data-field="passenger_type" value="ADULT">
+    <input type="hidden" data-field="seat_number" value="">
+    <div class="row g-2">
+      <div class="col-md-4"><label class="form-label small">First Name</label><input type="text" class="form-control" data-field="first_name" required></div>
+      <div class="col-md-4"><label class="form-label small">Middle Name</label><input type="text" class="form-control" data-field="middle_name"></div>
+      <div class="col-md-4"><label class="form-label small">Last Name</label><input type="text" class="form-control" data-field="last_name" required></div>
+      <div class="col-md-3"><label class="form-label small">Date of Birth</label><input type="date" class="form-control" data-field="date_of_birth"></div>
+      <div class="col-md-3">
+        <label class="form-label small">Gender</label>
+        <select class="form-select" data-field="gender">
+          <option value="">-</option><option value="M">Male</option><option value="F">Female</option><option value="O">Other</option>
+        </select>
+      </div>
+      <div class="col-md-3"><label class="form-label small">Nationality</label><input type="text" class="form-control" data-field="nationality"></div>
+      <div class="col-md-3"><label class="form-label small">Passenger Email</label><input type="email" class="form-control" data-field="email"></div>
+      <div class="col-md-6"><label class="form-label small">Passenger Phone</label><input type="text" class="form-control" data-field="phone_number"></div>
+    </div>
+  </fieldset>
+</template>
+{% endblock %}

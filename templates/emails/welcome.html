@@ -1,0 +1,6 @@
+{% extends "emails/_base_email.html" %}
+{% block body %}
+<h3>Welcome aboard, {{ user.get_full_name|default:user.username }}!</h3>
+<p>Your AeroFlow account has been created successfully. You can now book flights, track disruptions, and manage your travel recovery options all in one place.</p>
+<p>Happy travels!</p>
+{% endblock %}

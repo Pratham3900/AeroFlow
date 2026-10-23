@@ -1,0 +1,12 @@
+{% extends "emails/_base_email.html" %}
+{% block body %}
+<h3>Flight {{ flight.flight_number }} - Gate/Terminal Update</h3>
+<p>Dear {{ booking.contact_name|default:booking.passenger.get_full_name }},</p>
+<p>The following information changed for your flight <strong>{{ flight.flight_number }}</strong> ({{ flight.route_label }}), PNR {{ booking.pnr }}:</p>
+<ul>
+  {% for label, old, new in changes %}
+  <li><strong>{{ label }}:</strong> {{ old|default:"-" }} &rarr; {{ new }}</li>
+  {% endfor %}
+</ul>
+<p>Please check your AeroFlow dashboard for the latest flight information before travelling.</p>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load icons %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold mb-0">{% icon "bell" class_="text-primary" %} Notifications</h4>
+  <form method="post" action="{% url 'notifications:mark_all_read' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-secondary">Mark all read</button></form>
+</div>
+<div class="list-group">
+  {% for n in notifications %}
+  <div class="list-group-item notification-item {% if not n.is_read %}bg-light{% endif %}">
+    <div class="d-flex justify-content-between">
+      <div>
+        <div class="fw-semibold">{{ n.title }} <span class="badge bg-secondary">{{ n.get_notification_type_display }}</span></div>
+        <div class="small text-muted">{{ n.message }}</div>
+        <div class="small text-muted">{{ n.created_at|date:"d M Y, H:i" }}</div>
+      </div>
+      {% if not n.is_read %}
+      <a href="#" class="mark-notif-read small" data-url="{% url 'notifications:mark_read' n.pk %}">Mark read</a>
+      {% endif %}
+    </div>
+  </div>
+  {% empty %}
+  <p class="text-muted">No notifications.</p>
+  {% endfor %}
+</div>
+{% endblock %}

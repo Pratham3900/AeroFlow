@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load widget_tweaks icons aeroflow_extras %}
+{% block title %}Reschedule Booking{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3">{% icon "arrow-repeat" class_="text-primary" %} Reschedule Booking {{ booking.pnr }}</h4>
+<p class="text-muted">Current flight: <strong>{{ booking.flight.flight_number }}</strong> ({{ booking.flight.route_label }}) on {{ booking.flight.departure_date }}. This booking needs <strong>{{ booking.passenger_count }}</strong> seat(s) on the new flight.</p>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <form method="get" class="d-flex gap-2 align-items-end flex-wrap">
+      <div>
+        <label class="form-label small">New Departure Date</label>
+        {{ form.departure_date|add_class:"form-control" }}
+      </div>
+      <button class="btn btn-primary">{% icon "search" %} Search Flights</button>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead class="table-light"><tr><th>Flight</th><th>Departure</th><th>Seats</th><th></th></tr></thead>
+      <tbody>
+        {% for alt in alternatives %}
+        <tr>
+          <td class="fw-semibold">{{ alt.flight_number }}</td>
+          <td>{{ alt.departure_date }} {{ alt.departure_time }}</td>
+          <td>{{ alt.available_seats }}</td>
+          <td><a href="{% url 'bookings:reschedule_confirm' booking.pk alt.pk %}" class="btn btn-sm btn-primary">Select</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center text-muted py-4">No matching flights with enough seats on that date.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

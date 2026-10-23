@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load icons %}
+{% load widget_tweaks %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h4 class="fw-bold mb-3">{% icon "person-circle" class_="text-primary" %} My Profile</h4>
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">First Name</label>{{ form.first_name|add_class:"form-control" }}</div>
+            <div class="col-md-6"><label class="form-label">Last Name</label>{{ form.last_name|add_class:"form-control" }}</div>
+            <div class="col-md-6"><label class="form-label">Email</label>{{ form.email|add_class:"form-control" }}</div>
+            <div class="col-md-6"><label class="form-label">Phone</label>{{ form.phone_number|add_class:"form-control" }}</div>
+            <div class="col-md-6"><label class="form-label">Date of Birth</label>{{ form.date_of_birth|add_class:"form-control" }}</div>
+            <div class="col-md-6"><label class="form-label">Nationality</label>{{ form.nationality|add_class:"form-control" }}</div>
+            <div class="col-md-6"><label class="form-label">Passport Number</label>{{ form.passport_number|add_class:"form-control" }}</div>
+            <div class="col-md-6"><label class="form-label">Address</label>{{ form.address|add_class:"form-control" }}</div>
+          </div>
+          <button type="submit" class="btn btn-primary mt-4">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

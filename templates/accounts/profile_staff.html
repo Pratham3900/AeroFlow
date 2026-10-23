@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load icons %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <h4 class="fw-bold">{% icon "person-badge" class_="text-primary" %} {{ user_obj.get_full_name|default:user_obj.username }}</h4>
+    <p class="text-muted mb-0">{{ user_obj.email }}</p>
+    <p class="text-muted">Role: {{ user_obj.get_role_display }}</p>
+    {% if user_obj.staff_profile %}
+    <hr>
+    <p>Employee ID: {{ user_obj.staff_profile.employee_id }}</p>
+    <p>Department: {{ user_obj.staff_profile.get_department_display }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

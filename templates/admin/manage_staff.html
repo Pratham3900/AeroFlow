@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load icons %}
+{% block title %}Manage Staff{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold mb-0">{% icon "people" class_="text-primary" %} Manage Airline Staff</h4>
+  <a href="{% url 'core:add_staff' %}" class="btn btn-primary btn-sm">{% icon "plus-lg" %} Add Staff</a>
+</div>
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead class="table-light"><tr><th>Username</th><th>Name</th><th>Employee ID</th><th>Department</th><th></th></tr></thead>
+      <tbody>
+        {% for s in staff %}
+        <tr>
+          <td>{{ s.username }}</td>
+          <td>{{ s.get_full_name }}</td>
+          <td>{{ s.staff_profile.employee_id }}</td>
+          <td>{{ s.staff_profile.get_department_display }}</td>
+          <td><form method="post" action="{% url 'core:remove_staff' s.pk %}" onsubmit="return confirm('Remove this staff member?');">{% csrf_token %}<button class="btn btn-sm btn-outline-danger">Remove</button></form></td>
+        </tr>
+        {% empty %}<tr><td colspan="5" class="text-center text-muted py-4">No staff members yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "emails/_base_email.html" %}
+{% block body %}
+<h3>Refund {{ refund.refund_id }} Update</h3>
+<p>Dear {{ refund.passenger.get_full_name|default:refund.passenger.username }},</p>
+<p>{{ message }}</p>
+<p>Booking: <strong>{{ booking.pnr }}</strong> | Requested Amount: Rs. {{ refund.requested_amount }} | Status: <strong>{{ refund.get_status_display }}</strong></p>
+{% endblock %}

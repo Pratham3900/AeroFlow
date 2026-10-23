@@ -1,0 +1,12 @@
+{% extends "emails/_base_email.html" %}
+{% block body %}
+<h3>Rebooking Request Rejected</h3>
+<p>Dear {{ booking.contact_name|default:rebooking_request.passenger.get_full_name }},</p>
+<p>We were unable to approve your rebooking request for booking <strong>{{ booking.pnr }}</strong> onto flight
+   <strong>{{ rebooking_request.requested_flight.flight_number }}</strong> ({{ rebooking_request.requested_flight.route_label }}).</p>
+{% if rebooking_request.staff_remarks %}
+<p><strong>Reason:</strong> {{ rebooking_request.staff_remarks }}</p>
+{% endif %}
+<p>Your original booking <strong>{{ booking.pnr }}</strong> remains active. Please log in to AeroFlow to choose a
+   different recovery option (another flight, a refund, or applicable vouchers).</p>
+{% endblock %}

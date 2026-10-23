@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load icons %}
+{% load aeroflow_extras %}
+{% block title %}Recovery Options{% endblock %}
+{% block content %}
+<div class="card shadow-sm border-{% if booking.flight.status == 'CANCELLED' %}danger{% else %}warning{% endif %} mb-4">
+  <div class="card-body">
+    <h5 class="fw-bold">FLIGHT STATUS: <span class="text-{% if booking.flight.status == 'CANCELLED' %}danger{% else %}warning{% endif %}">{{ booking.flight.get_status_display }}</span></h5>
+    <p class="mb-1"><strong>Flight:</strong> {{ booking.flight.flight_number }} &mdash; {{ booking.flight.route_label }}</p>
+    <p class="mb-1"><strong>Booking:</strong> {{ booking.pnr }} &middot; {{ booking.passenger_count }} passenger(s) affected</p>
+    <p class="mb-1 small text-muted">
+      {% for p in booking.booking_passengers.all %}{{ p.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+    </p>
+    {% if disruption.disruption_type == "DELAY" %}
+    <p class="mb-1"><strong>Original Departure:</strong> {{ booking.flight.departure_time }}</p>
+    <p class="mb-1"><strong>Delay:</strong> {{ disruption.delay_minutes }} minutes</p>
+    {% endif %}
+    <p class="mb-0"><strong>Reason:</strong> {{ disruption.reason|default:"Operational issue" }}</p>
+  </div>
+</div>
+
+{% if not disruption.eligible_for_recovery %}
+<div class="alert alert-info">This booking is not yet eligible for recovery services (below the configured delay threshold). You will be notified automatically if that changes.</div>
+{% endif %}
+
+<div class="row g-3">
+  {% if disruption.eligible_for_rebooking %}
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-bold">{% icon "arrow-repeat" class_="text-primary" %} Rebook Flight</div>
+      <div class="card-body">
+        {% if pending_rebooking %}
+        <p class="text-muted small">A rebooking request to flight <strong>{{ pending_rebooking.requested_flight.flight_number }}</strong> is pending staff approval.</p>
+        {% else %}
+        <form method="post" action="{% url 'recovery:request_rebooking' booking.pk %}">
+          {% csrf_token %}
+          <select name="flight_id" class="form-select mb-2" required>
+            <option value="">Select an alternative flight...</option>
+            {% for alt in alternatives %}
+            <option value="{{ alt.pk }}">{{ alt.flight_number }} - {{ alt.departure_date }} {{ alt.departure_time }} ({{ alt.available_seats }} seats)</option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-primary w-100" {% if not alternatives %}disabled{% endif %}>Request Rebooking</button>
+        </form>
+        {% if not alternatives %}<p class="text-muted small mt-2">No alternative flights currently available.</p>{% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if disruption.eligible_for_refund %}
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-bold">{% icon "cash-coin" class_="text-success" %} Request Refund</div>
+      <div class="card-body">
+        {% if refund_requests %}
+        <ul class="list-unstyled small">
+          {% for rf in refund_requests %}<li>{{ rf.refund_id }}: <span class="badge bg-{{ rf.status|status_badge }}">{{ rf.get_status_display }}</span></li>{% endfor %}
+        </ul>
+        {% endif %}
+        <a href="{% url 'recovery:submit_refund_request' booking.pk %}" class="btn btn-success w-100">Request Refund</a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% for voucher_type, voucher_label in voucher_types %}
+    {% if voucher_type == "MEAL" and disruption.eligible_for_meal_voucher or voucher_type == "HOTEL" and disruption.eligible_for_hotel_voucher or voucher_type == "TRANSPORT" and disruption.eligible_for_transport_voucher %}
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white fw-bold">{% icon "gift" class_="text-warning" %} {{ voucher_label }}</div>
+        <div class="card-body">
+          <form method="post" action="{% url 'recovery:request_voucher' booking.pk voucher_type %}">
+            {% csrf_token %}
+            <button class="btn btn-outline-warning w-100">Generate {{ voucher_label }}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+</div>
+
+{% if existing_vouchers %}
+<div class="card shadow-sm mt-4">
+  <div class="card-header bg-white fw-bold">Vouchers Issued for This Booking</div>
+  <ul class="list-group list-group-flush">
+    {% for v in existing_vouchers %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      {{ v.get_voucher_type_display }} - {{ v.voucher_code }} (Rs. {{ v.amount }})
+      <span>
+        <span class="badge bg-{{ v.status|status_badge }} me-2">{{ v.get_status_display }}</span>
+        <a href="{% url 'vouchers:download' v.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary">PDF</a>
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% endblock %}

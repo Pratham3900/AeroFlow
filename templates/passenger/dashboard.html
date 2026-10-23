@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load icons %}
+{% load aeroflow_extras %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="hero-banner mb-4">
+  <h3 class="fw-bold mb-1">Welcome, {{ user.get_full_name|default:user.username }} {% icon "airplane-fill" %}</h3>
+  <p class="mb-0 opacity-75">Here's what's happening with your flights today.</p>
+</div>
+
+{% if next_booking %}
+<div class="card shadow-sm mb-4 border-warning">
+  <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <div class="text-muted small">Your Next Flight</div>
+      <div class="fs-5 fw-bold route-badge">{{ next_booking.flight.route_label }} &middot; {{ next_booking.flight.flight_number }}</div>
+      <div class="small text-muted">{{ next_booking.flight.departure_date }} at {{ next_booking.flight.departure_time }} &middot; PNR {{ next_booking.pnr }} &middot; {{ next_booking.passenger_count }} passenger(s)</div>
+    </div>
+    <span class="badge bg-{{ next_booking.flight.status|status_badge }} status-badge">{{ next_booking.flight.get_status_display }}</span>
+    <a href="{% url 'bookings:detail' next_booking.pk %}" class="btn btn-sm btn-primary">View Booking</a>
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+  {% include "partials/_stat_card.html" with icon="calendar-check" color="bg-icon-blue" label="Upcoming Flights" value=upcoming_count %}
+  {% include "partials/_stat_card.html" with icon="clock-history" color="bg-icon-navy" label="Completed Flights" value=completed_count %}
+  {% include "partials/_stat_card.html" with icon="alarm" color="bg-icon-amber" label="Delayed Flights" value=delayed_count %}
+  {% include "partials/_stat_card.html" with icon="x-octagon" color="bg-icon-red" label="Cancelled Flights" value=cancelled_count %}
+  {% include "partials/_stat_card.html" with icon="hourglass-split" color="bg-icon-purple" label="Pending Requests" value=pending_requests_count %}
+  {% include "partials/_stat_card.html" with icon="gift" color="bg-icon-green" label="Active Vouchers" value=active_vouchers_count %}
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-bold">{% icon "ticket-perforated" %} Recent Bookings</span>
+        <a href="{% url 'bookings:my_bookings' %}" class="small">View all</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead class="table-light"><tr><th>PNR</th><th>Flight</th><th>Route</th><th>Passengers</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            {% for booking in recent_bookings %}
+            <tr>
+              <td>{{ booking.pnr }}</td>
+              <td>{{ booking.flight.flight_number }}</td>
+              <td class="route-badge">{{ booking.flight.route_label }}</td>
+              <td>{{ booking.passenger_count }}</td>
+              <td><span class="badge bg-{{ booking.flight.status|status_badge }} status-badge">{{ booking.flight.get_status_display }}</span></td>
+              <td><a href="{% url 'bookings:detail' booking.pk %}" class="btn btn-sm btn-outline-primary">View</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-4">No bookings yet. <a href="{% url 'flights:search' %}">Search flights</a> to book your first trip.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-bold">{% icon "bell" %} Notifications</div>
+      <ul class="list-group list-group-flush">
+        {% for n in notifications %}
+        <li class="list-group-item">
+          <div class="small fw-semibold">{{ n.title }}</div>
+          <div class="small text-muted">{{ n.message|truncatechars:80 }}</div>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted small">No notifications yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

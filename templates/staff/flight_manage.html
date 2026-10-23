@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load icons %}
+{% load aeroflow_extras widget_tweaks %}
+{% block title %}Manage {{ flight.flight_number }}{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3">{% icon "airplane" class_="text-primary" %} Manage Flight {{ flight.flight_number }}</h4>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header bg-white d-flex justify-content-between">
+        <span class="fw-bold">Current Status</span>
+        <span class="badge bg-{{ flight.status|status_badge }} status-badge">{{ flight.get_status_display }}</span>
+      </div>
+      <div class="card-body">
+        <p><strong>Route:</strong> {{ flight.route_label }}</p>
+        <p><strong>Scheduled Departure:</strong> {{ flight.departure_date }} {{ flight.departure_time }}</p>
+        <p><strong>Aircraft:</strong> {{ flight.aircraft.name|default:"Not assigned" }}</p>
+        {% if flight.status == "DELAYED" %}
+        <p><strong>Cumulative Delay:</strong> {{ flight.delay_minutes }} minutes &mdash; {{ flight.delay_reason }}</p>
+        {% elif flight.status == "CANCELLED" %}
+        <p><strong>Cancellation Reason:</strong> {{ flight.cancellation_reason }}</p>
+        {% endif %}
+        {% if flight.boarding_passes_generated_at %}
+        <p class="small text-success">{% icon "check" %} Boarding passes generated {{ flight.boarding_passes_generated_at|date:"d M Y, H:i" }}</p>
+        {% endif %}
+        <form method="post" action="{% url 'flights:staff_flight_status' flight.pk %}" class="d-flex gap-2 mt-3">
+          {% csrf_token %}
+          <select name="status" class="form-select">
+            {% for value, label in flight.STATUS_CHOICES %}
+            {% if value != "DELAYED" and value != "CANCELLED" and value != "BOARDING" %}
+            <option value="{{ value }}" {% if flight.status == value %}selected{% endif %}>{{ label }}</option>
+            {% endif %}
+            {% endfor %}
+          </select>
+          <button class="btn btn-outline-primary">Update</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-3 border-success">
+      <div class="card-header bg-white fw-bold">{% icon "check" %} Open Boarding</div>
+      <div class="card-body">
+        <p class="small text-muted">Moving this flight to <strong>Boarding</strong> automatically generates and emails a boarding pass to every confirmed passenger. This can only happen once per flight.</p>
+        <form method="post" action="{% url 'flights:staff_flight_mark_boarding' flight.pk %}" data-confirm="Open boarding for {{ flight.flight_number }}? This will generate and email every passenger's boarding pass.">
+          {% csrf_token %}
+          <button class="btn btn-success w-100" {% if flight.status == "CANCELLED" or flight.boarding_passes_generated_at %}disabled{% endif %}>
+            {% if flight.boarding_passes_generated_at %}Boarding Passes Already Generated{% else %}Mark as Boarding &amp; Generate Boarding Passes{% endif %}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-bold">{% icon "signpost-2" %} Gate / Terminal / Boarding Time</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'flights:staff_flight_update_gate' flight.pk %}">
+          {% csrf_token %}
+          <div class="row g-2">
+            <div class="col-6"><label class="form-label small">Origin Terminal</label>{{ gate_form.origin_terminal|add_class:"form-control" }}</div>
+            <div class="col-6"><label class="form-label small">Origin Gate</label>{{ gate_form.origin_gate|add_class:"form-control" }}</div>
+            <div class="col-6"><label class="form-label small">Destination Terminal</label>{{ gate_form.destination_terminal|add_class:"form-control" }}</div>
+            <div class="col-6"><label class="form-label small">Destination Gate</label>{{ gate_form.destination_gate|add_class:"form-control" }}</div>
+            <div class="col-6"><label class="form-label small">Boarding Time</label>{{ gate_form.boarding_time|add_class:"form-control" }}</div>
+          </div>
+          <button class="btn btn-outline-primary w-100 mt-3">Update &amp; Notify Passengers</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card shadow-sm mb-3 border-warning">
+      <div class="card-header bg-warning-subtle fw-bold">{% icon "alarm" %} Add Delay</div>
+      <div class="card-body">
+        <p class="small text-muted mb-2">
+          Current cumulative delay: <strong>{{ flight.delay_minutes }} minutes</strong>.
+          The value below is <strong>added</strong> to this total - it is never treated as the new total.
+        </p>
+        <form method="post" action="{% url 'flights:staff_flight_mark_delayed' flight.pk %}">
+          {% csrf_token %}
+          <div class="mb-2">
+            <label class="form-label">{{ delay_form.additional_delay_minutes.label }}</label>
+            {{ delay_form.additional_delay_minutes|add_class:"form-control" }}
+          </div>
+          <div class="mb-2">
+            <label class="form-label">{{ delay_form.delay_reason.label }}</label>
+            {{ delay_form.delay_reason|add_class:"form-control" }}
+          </div>
+          <button class="btn btn-warning w-100">Add Delay &amp; Notify Passengers</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card shadow-sm border-danger mb-3">
+      <div class="card-header bg-danger-subtle fw-bold">{% icon "x-octagon" %} Cancel Flight</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'flights:staff_flight_cancel' flight.pk %}" data-confirm="Cancel this flight? This cannot be undone.">
+          {% csrf_token %}
+          <div class="mb-2">
+            <label class="form-label">{{ cancel_form.cancellation_reason.label }}</label>
+            {{ cancel_form.cancellation_reason|add_class:"form-control" }}
+          </div>
+          <button class="btn btn-danger w-100">Cancel Flight &amp; Trigger Recovery</button>
+        </form>
+      </div>
+    </div>
+
+    {% if delay_records %}
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-bold small">{% icon "clock-history" %} Delay History</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead class="table-light"><tr><th>#</th><th>Additional</th><th>Total</th><th>Facility</th><th>When</th></tr></thead>
+          <tbody>
+            {% for d in delay_records %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>+{{ d.additional_delay_minutes }} min</td>
+              <td>{{ d.total_delay_minutes }} min</td>
+              <td class="small">{{ d.get_facility_level_display }}</td>
+              <td class="small">{{ d.created_at|date:"d M, H:i" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card shadow-sm mt-4">
+  <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+    <span>{% icon "people" %} Bookings on This Flight</span>
+    <span class="badge bg-secondary">{{ affected_passenger_count }} passenger(s) total</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead class="table-light"><tr><th>PNR</th><th>Primary Booker</th><th>Passengers</th><th>Category</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for b in bookings %}
+        <tr>
+          <td>{{ b.pnr }}</td>
+          <td>{{ b.contact_name|default:b.passenger.username }}</td>
+          <td>
+            {% for p in b.booking_passengers.all %}{{ p.full_name }} ({{ p.seat_number }}){% if not forloop.last %}, {% endif %}{% endfor %}
+            <span class="text-muted small">({{ b.passenger_count }})</span>
+          </td>
+          <td>{{ b.travel_class }}</td>
+          <td><span class="badge bg-secondary">{{ b.get_status_display }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted py-3">No active bookings on this flight yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "emails/_base_email.html" %}
+{% block body %}
+<h3>{{ voucher.get_voucher_type_display }} Issued</h3>
+<p>Dear {{ voucher.passenger.get_full_name|default:voucher.passenger.username }},</p>
+<p>A {{ voucher.get_voucher_type_display|lower }} worth <strong>Rs. {{ voucher.amount }}</strong> has been issued for booking {{ booking.pnr }}.</p>
+<p>Voucher Code: <strong>{{ voucher.voucher_code }}</strong> | Valid until {{ voucher.expiry_date }}</p>
+<p>{{ voucher.usage_instructions }}</p>
+<p>Your voucher PDF (with QR code) is attached.</p>
+{% endblock %}

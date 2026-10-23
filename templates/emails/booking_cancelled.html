@@ -1,0 +1,19 @@
+{% extends "emails/_base_email.html" %}
+{% block body %}
+<h3>Booking Cancelled</h3>
+<p>Dear {{ booking.contact_name }},</p>
+<p>Your booking <strong>{{ booking.pnr }}</strong> on flight {{ booking.flight.flight_number }} has been cancelled{% if reason %} - {{ reason }}{% endif %}.</p>
+{% if cancellation.refund_eligible %}
+<p style="background:#d1e7dd;color:#0f5132;padding:10px 14px;border-radius:8px;">
+  <strong>Refund Eligibility: Eligible</strong><br>
+  Refund Amount: Rs. {{ refund.amount }}<br>
+  Refund Status: {{ refund.get_status_display }}
+</p>
+{% else %}
+<p style="background:#f8d7da;color:#842029;padding:10px 14px;border-radius:8px;">
+  <strong>Refund Eligibility: Not Eligible</strong><br>
+  This booking was cancelled less than 24 hours before scheduled departure.
+</p>
+{% endif %}
+<p>Your Cancellation Receipt is attached to this email as a PDF.</p>
+{% endblock %}

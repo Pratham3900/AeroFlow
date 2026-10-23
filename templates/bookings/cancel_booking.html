@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load widget_tweaks icons %}
+{% block title %}Cancel Booking{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-sm border-danger">
+      <div class="card-header bg-danger-subtle fw-bold">{% icon "cancel" %} Cancel Booking {{ booking.pnr }}</div>
+      <div class="card-body">
+        <div class="alert alert-warning">
+          <strong>Cancellation Policy:</strong> Cancellations made 24 hours or more before scheduled departure are
+          eligible for a full refund. Cancellations made less than 24 hours before departure are not eligible for
+          a refund. Your booking history is always kept, never deleted.
+        </div>
+        {% if refund_will_be_eligible %}
+        <div class="alert alert-success">
+          You are currently <strong>{{ hours_to_departure }} hours</strong> before departure - if you cancel now, you will be <strong>eligible for a refund</strong>.
+        </div>
+        {% else %}
+        <div class="alert alert-danger">
+          You are currently <strong>{{ hours_to_departure }} hours</strong> before departure - if you cancel now, this will <strong>NOT be eligible for a refund</strong>.
+        </div>
+        {% endif %}
+        <p><strong>Flight:</strong> {{ booking.flight.flight_number }} - {{ booking.flight.route_label }}</p>
+        <p><strong>Passengers:</strong> {{ booking.passenger_count }} &middot; <strong>Fare Paid:</strong> Rs. {{ booking.payment_amount }}</p>
+        <form method="post">
+          {% csrf_token %}
+          <label class="form-label">{{ form.reason.label }}</label>
+          {{ form.reason|add_class:"form-control" }}
+          <button class="btn btn-danger w-100 mt-3" data-confirm="Cancel booking {{ booking.pnr }}? This cannot be undone.">Confirm Cancellation</button>
+          <a href="{% url 'bookings:detail' booking.pk %}" class="btn btn-outline-secondary w-100 mt-2">Go Back</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

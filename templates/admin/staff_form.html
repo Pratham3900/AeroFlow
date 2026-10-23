@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load icons %}
+{% load widget_tweaks %}
+{% block title %}Add Staff{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3">{% icon "person-plus" class_="text-primary" %} Add Airline Staff</h4>
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="row g-3">
+        {% for field in form %}
+        <div class="col-md-6">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field|add_class:"form-control" }}
+          {% if field.errors %}<div class="text-danger small">{{ field.errors }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <button class="btn btn-primary mt-4">Create Staff Account</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

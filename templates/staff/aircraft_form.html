@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load widget_tweaks icons %}
+{% block title %}Add Aircraft{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3">{% icon "airplane" class_="text-primary" %} Add Aircraft</h4>
+<p class="text-muted small">Seat categories are entirely up to you - add as many as this aircraft actually has (e.g. just "Economy", or "Economy" + "Business", or a custom name). Passengers booking on this aircraft will only ever see the categories you configure here.</p>
+
+<form method="post" id="aircraft-form">
+  {% csrf_token %}
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white fw-bold">Aircraft Details</div>
+        <div class="card-body">
+          {% for field in form %}
+          <div class="mb-2">
+            <label class="form-label">{{ field.label }}</label>
+            {% if field.name == "is_active" %}
+            <div>{{ field }}</div>
+            {% else %}
+            {{ field|add_class:"form-control" }}
+            {% endif %}
+            {% if field.errors %}<div class="text-danger small">{{ field.errors }}</div>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <span class="fw-bold">Seat Categories</span>
+          <button type="button" id="add-category-row-btn" class="btn btn-sm btn-outline-primary">{% icon "plus-lg" %} Add Category</button>
+        </div>
+        <div class="card-body">
+          <div id="category-rows-container"></div>
+          <input type="hidden" id="id_total_categories" name="total_categories" value="0">
+          <p class="text-muted small mb-0" id="category-summary"></p>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary w-100 mt-3">{% icon "check" %} Create Aircraft &amp; Generate Seat Map</button>
+    </div>
+  </div>
+</form>
+
+<template id="category-row-template">
+  <div class="category-row">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3"><label class="form-label small">Category Name</label><input type="text" class="form-control" data-field="name" placeholder="Economy" required></div>
+      <div class="col-md-2"><label class="form-label small">Code</label><input type="text" class="form-control" data-field="code" placeholder="economy" required></div>
+      <div class="col-md-2"><label class="form-label small">Rows</label><input type="number" min="1" class="form-control" data-field="rows" value="10" required></div>
+      <div class="col-md-2"><label class="form-label small">Seats/Row</label><input type="number" min="1" max="10" class="form-control" data-field="seats_per_row" value="6" required></div>
+      <div class="col-md-2"><label class="form-label small">Fare x</label><input type="number" step="0.1" min="0.1" class="form-control" data-field="price_multiplier" value="1.0"></div>
+      <div class="col-md-1">
+        <label class="form-label small">&nbsp;</label>
+        <button type="button" class="btn btn-outline-danger btn-sm w-100 remove-category-row-btn">{% icon "delete" %}</button>
+      </div>
+      <div class="col-md-3"><label class="form-label small">Legend Colour</label><input type="text" class="form-control" data-field="color" value="#1e88e5"></div>
+    </div>
+  </div>
+</template>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load aeroflow_extras icons %}
+{% block title %}Flight {{ flight.flight_number }}{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-header bg-white d-flex justify-content-between">
+    <span class="fw-bold">Flight {{ flight.flight_number }}</span>
+    <span class="badge bg-{{ flight.status|status_badge }} status-badge">{{ flight.get_status_display }}</span>
+  </div>
+  <div class="card-body">
+    <div class="row g-3 mb-3">
+      <div class="col-md-5">
+        <div class="text-muted small">{% icon "airplane" %} ORIGIN</div>
+        <div class="fw-bold fs-5">{{ flight.origin.city }} ({{ flight.origin.code }})</div>
+        <div class="small text-muted">Terminal {{ flight.origin_terminal|default:"TBD" }} &middot; Gate {{ flight.origin_gate|default:"TBD" }}</div>
+        <div class="fw-semibold">{{ flight.departure_time }}</div>
+      </div>
+      <div class="col-md-2 text-center d-flex align-items-center justify-content-center">
+        <span class="text-muted">&rarr;</span>
+      </div>
+      <div class="col-md-5">
+        <div class="text-muted small">DESTINATION</div>
+        <div class="fw-bold fs-5">{{ flight.destination.city }} ({{ flight.destination.code }})</div>
+        <div class="small text-muted">Terminal {{ flight.destination_terminal|default:"TBD" }} &middot; Gate {{ flight.destination_gate|default:"TBD" }}</div>
+        <div class="fw-semibold">{{ flight.arrival_time }}</div>
+      </div>
+    </div>
+    <hr>
+    <div class="row g-3">
+      <div class="col-md-3"><div class="text-muted small">Date</div><div class="fw-semibold">{{ flight.departure_date }}</div></div>
+      <div class="col-md-3"><div class="text-muted small">Aircraft</div><div class="fw-semibold">{{ flight.aircraft.name|default:"Not assigned" }}</div></div>
+      <div class="col-md-3"><div class="text-muted small">Boarding Time</div><div class="fw-semibold">{{ flight.boarding_time|default:"To be announced" }}</div></div>
+      <div class="col-md-3"><div class="text-muted small">Seats Available</div><div class="fw-semibold">{{ flight.available_seats }}/{{ flight.seat_capacity }}</div></div>
+      <div class="col-12">
+        <div class="text-muted small">Seat Categories</div>
+        <div class="fw-semibold">
+          {% for c in categories %}<span class="badge bg-secondary me-1">{{ c.name }} (x{{ c.price_multiplier }})</span>{% empty %}Economy{% endfor %}
+        </div>
+      </div>
+      {% if flight.status == "DELAYED" %}
+      <div class="col-12"><div class="alert alert-warning mb-0"><strong>Delayed {{ flight.delay_minutes }} min (cumulative).</strong> {{ flight.delay_reason }}</div></div>
+      {% elif flight.status == "CANCELLED" %}
+      <div class="col-12"><div class="alert alert-danger mb-0"><strong>Cancelled.</strong> {{ flight.cancellation_reason }}</div></div>
+      {% endif %}
+    </div>
+    {% if flight.status != "CANCELLED" and flight.available_seats > 0 %}
+    <a href="{% url 'bookings:book_flight' flight.pk %}" class="btn btn-primary mt-3">Book This Flight</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

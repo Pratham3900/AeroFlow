@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load icons %}
+{% load widget_tweaks %}
+{% block title %}Request Refund{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-bold">{% icon "cash-coin" class_="text-success" %} Refund Request - {{ booking.pnr }}</div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">{{ form.reason.label }}</label>
+            {{ form.reason|add_class:"form-control" }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.requested_amount.label }}</label>
+            {{ form.requested_amount|add_class:"form-control" }}
+          </div>
+          <button class="btn btn-success w-100">Submit Refund Request</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

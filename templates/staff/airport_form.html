@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load widget_tweaks icons %}
+{% block title %}{{ title|default:"Airport" }}{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3">{% icon "signpost-2" class_="text-primary" %} {{ title }}</h4>
+<div class="card shadow-sm{% if airport %} mb-4{% endif %}">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="row g-3">
+        {% for field in form %}
+        <div class="col-md-6">
+          <label class="form-label">{{ field.label }}</label>
+          {% if field.name == "is_active" %}
+          <div>{{ field }}</div>
+          {% else %}
+          {{ field|add_class:"form-control" }}
+          {% endif %}
+          {% if field.errors %}<div class="text-danger small">{{ field.errors }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <button type="submit" class="btn btn-primary mt-4">Save Airport</button>
+      <a href="{% url 'flights:staff_airport_list' %}" class="btn btn-outline-secondary mt-4">Cancel</a>
+    </form>
+  </div>
+</div>
+
+{% if airport %}
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-bold">{% icon "signpost-2" %} Terminals &amp; Gates - {{ airport.code }}</div>
+  <div class="card-body">
+    <form method="post" action="{% url 'flights:staff_terminal_add' airport.pk %}" class="d-flex gap-2 mb-4">
+      {% csrf_token %}
+      {{ terminal_form.name|add_class:"form-control" }}
+      <button class="btn btn-primary text-nowrap">{% icon "plus-lg" %} Add Terminal</button>
+    </form>
+
+    {% for terminal in terminals %}
+    <div class="border rounded p-3 mb-3">
+      <div class="fw-semibold mb-2">{{ terminal.name }}</div>
+      <ul class="list-unstyled mb-3">
+        {% for gate in terminal.gates.all %}
+        <li class="d-inline-block me-2 mb-2"><span class="badge bg-secondary">{{ gate.name }}</span></li>
+        {% empty %}
+        <li class="text-muted small">No gates added yet.</li>
+        {% endfor %}
+      </ul>
+      <form method="post" action="{% url 'flights:staff_gate_add' terminal.pk %}" class="d-flex gap-2">
+        {% csrf_token %}
+        {{ gate_form.name|add_class:"form-control form-control-sm" }}
+        <button class="btn btn-sm btn-outline-primary text-nowrap">{% icon "plus-lg" %} Add Gate</button>
+      </form>
+    </div>
+    {% empty %}
+    <p class="text-muted small mb-0">No terminals added yet. Use "Add Terminal" above to create one (e.g. "Terminal 1"), then add gates inside it.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

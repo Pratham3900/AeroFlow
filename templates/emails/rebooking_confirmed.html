@@ -1,0 +1,12 @@
+{% extends "emails/_base_email.html" %}
+{% block body %}
+<h3>Rebooking Confirmed</h3>
+<p>Dear {{ new_booking.contact_name|default:new_booking.passenger.get_full_name }},</p>
+<p>Your party has been successfully rebooked from PNR <strong>{{ old_booking.pnr }}</strong> onto flight <strong>{{ flight.flight_number }}</strong> ({{ flight.route_label }}).</p>
+<p>New PNR: <strong>{{ new_booking.pnr }}</strong></p>
+<p><strong>Passengers:</strong></p>
+<ul>
+  {% for p in new_booking.booking_passengers.all %}<li>{{ p.full_name }} - Seat {{ p.seat_number }}</li>{% endfor %}
+</ul>
+<p>Updated boarding passes for every passenger are attached.</p>
+{% endblock %}

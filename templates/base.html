@@ -1,0 +1,91 @@
+{% load icons %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}AeroFlow{% endblock %} | AeroFlow</title>
+<link href="{% static 'css/style.css' %}" rel="stylesheet">
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark aeroflow-navbar sticky-top">
+  <div class="container-fluid px-3 px-lg-4">
+    <a class="navbar-brand fw-bold" href="{% url 'dashboard:home' %}">{% icon "airplane-engines-fill" class_="me-2" %}AeroFlow</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navMain" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMain">
+      {% if user.is_authenticated %}
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link" href="{% url 'dashboard:home' %}">{% icon "speedometer2" %} Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'flights:search' %}">{% icon "search" %} Flights</a></li>
+        {% if user.is_passenger_role %}
+        <li class="nav-item"><a class="nav-link" href="{% url 'bookings:my_bookings' %}">{% icon "ticket-perforated" %} Bookings</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'vouchers:my_vouchers' %}">{% icon "gift" %} Vouchers</a></li>
+        {% endif %}
+        {% if user.is_staff_role %}
+        <li class="nav-item"><a class="nav-link" href="{% url 'flights:staff_flight_list' %}">{% icon "airplane" %} Manage Flights</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'flights:staff_airport_list' %}">{% icon "signpost-2" %} Airports</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'flights:staff_aircraft_list' %}">{% icon "gear" %} Aircraft</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'recovery:staff_requests_dashboard' %}">{% icon "life-preserver" %} Requests</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'reports:daily_report' %}">{% icon "file-earmark-bar-graph" %} Reports</a></li>
+        {% endif %}
+        {% if user.is_admin_role %}
+        <li class="nav-item"><a class="nav-link" href="{% url 'core:manage_staff' %}">{% icon "people" %} Staff</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'core:manage_passengers' %}">{% icon "person-lines-fill" %} Passengers</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'core:system_settings' %}">{% icon "gear" %} Settings</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'core:audit_logs' %}">{% icon "journal-text" %} Audit Logs</a></li>
+        {% endif %}
+      </ul>
+      <ul class="navbar-nav align-items-lg-center">
+        <li class="nav-item dropdown">
+          <a class="nav-link position-relative" href="{% url 'notifications:list' %}" title="Notifications">
+            {% icon "bell" class_="fs-5" %}
+            {% if unread_notification_count > 0 %}
+            <span class="badge rounded-pill bg-danger notif-badge">{{ unread_notification_count }}</span>
+            {% endif %}
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
+            {% icon "person-circle" %} {{ user.get_full_name|default:user.username }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">{% icon "person" %} Profile</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">{% icon "box-arrow-right" %} Logout</button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid px-3 px-lg-4 py-4">
+  {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</div>
+
+<footer class="text-center text-muted small py-4">
+  &copy; {% now "Y" %} AeroFlow Airlines &mdash; Flight Disruption Recovery &amp; Passenger Service Platform
+</footer>
+
+<script src="{% static 'js/app.js' %}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

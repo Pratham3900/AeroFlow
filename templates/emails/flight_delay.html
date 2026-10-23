@@ -1,0 +1,30 @@
+{% extends "emails/_base_email.html" %}
+{% block body %}
+<h3>Flight {{ flight.flight_number }} Delay Update</h3>
+<p>Dear {{ booking.contact_name|default:booking.passenger.get_full_name }},</p>
+<p>Your flight <strong>{{ flight.flight_number }}</strong> ({{ flight.route_label }}) has an additional delay of
+   <strong>{{ additional_delay_minutes }} minutes</strong>, bringing the total cumulative delay to
+   <strong>{{ delay_minutes }} minutes</strong>.</p>
+<p><strong>Reason:</strong> {{ reason|default:"Operational issue" }}</p>
+{% if passengers %}
+<p><strong>Affected Passengers (PNR {{ booking.pnr }}):</strong></p>
+<ul>
+  {% for p in passengers %}<li>{{ p.full_name }} - Seat {{ p.seat_number|default:"TBD" }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+{% if facility_level == "NONE" %}
+<p style="background:#cff4fc;color:#087990;padding:10px 14px;border-radius:8px;">
+  Currently, no passenger facility/voucher is applicable.
+</p>
+{% elif facility_level == "MEAL" %}
+<p style="background:#fff3cd;color:#664d03;padding:10px 14px;border-radius:8px;">
+  You are eligible for: <strong>&#10003; Meal Voucher</strong>
+</p>
+{% else %}
+<p style="background:#d1e7dd;color:#0f5132;padding:10px 14px;border-radius:8px;">
+  You are eligible for:<br>&#10003; Meal<br>&#10003; Hotel Accommodation<br>&#10003; Transportation
+</p>
+{% endif %}
+<p>Please log in to AeroFlow to view your recovery options.</p>
+{% endblock %}

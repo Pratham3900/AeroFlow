@@ -1,0 +1,13 @@
+{% extends "emails/_base_email.html" %}
+{% block body %}
+<h3>Flight Rescheduled</h3>
+<p>Dear {{ new_booking.contact_name }},</p>
+<p>Your booking has been rescheduled from PNR <strong>{{ old_booking.pnr }}</strong> to flight <strong>{{ flight.flight_number }}</strong> ({{ flight.route_label }}).</p>
+<p>New PNR: <strong>{{ new_booking.pnr }}</strong></p>
+{% if fare_difference > 0 %}<p>An additional fare of Rs. {{ fare_difference }} was applied for this change.</p>{% endif %}
+<p><strong>Passengers:</strong></p>
+<ul>
+  {% for p in new_booking.booking_passengers.all %}<li>{{ p.full_name }} - Seat {{ p.seat_number }}</li>{% endfor %}
+</ul>
+<p>Updated boarding passes are attached.</p>
+{% endblock %}

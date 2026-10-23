@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load icons %}
+{% load widget_tweaks %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card shadow-sm mt-4">
+      <div class="card-body p-4">
+        <h4 class="fw-bold mb-3">{% icon "person-plus" class_="text-primary" %} Create your passenger account</h4>
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">First Name</label>
+              {{ form.first_name|add_class:"form-control" }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Last Name</label>
+              {{ form.last_name|add_class:"form-control" }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Username</label>
+              {{ form.username|add_class:"form-control" }}
+              {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email</label>
+              {{ form.email|add_class:"form-control" }}
+              {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Phone Number</label>
+              {{ form.phone_number|add_class:"form-control" }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Nationality</label>
+              {{ form.nationality|add_class:"form-control" }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Passport Number</label>
+              {{ form.passport_number|add_class:"form-control" }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Password</label>
+              {{ form.password1|add_class:"form-control" }}
+              {% if form.password1.errors %}<div class="text-danger small">{{ form.password1.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Confirm Password</label>
+              {{ form.password2|add_class:"form-control" }}
+              {% if form.password2.errors %}<div class="text-danger small">{{ form.password2.errors }}</div>{% endif %}
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 mt-4">Create Account</button>
+        </form>
+        <p class="text-center mt-3 small">Already have an account? <a href="{% url 'accounts:login' %}">Login</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

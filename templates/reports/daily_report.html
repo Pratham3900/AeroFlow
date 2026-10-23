@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load icons %}
+{% block title %}Daily Report{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold mb-0">{% icon "file-earmark-bar-graph" class_="text-primary" %} Daily Operational Report</h4>
+  <div class="d-flex gap-2">
+    <form method="get" class="d-flex gap-2">
+      <input type="date" name="date" value="{{ stats.date|date:'Y-m-d' }}" class="form-control form-control-sm">
+      <button class="btn btn-sm btn-outline-primary">View</button>
+    </form>
+    <a href="{% url 'reports:daily_report_pdf' %}?date={{ stats.date|date:'Y-m-d' }}" class="btn btn-sm btn-success" target="_blank">{% icon "file-earmark-pdf" %} Download PDF</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  {% include "partials/_stat_card.html" with icon="airplane" color="bg-icon-navy" label="Total Flights" value=stats.total_flights %}
+  {% include "partials/_stat_card.html" with icon="alarm" color="bg-icon-amber" label="Delayed" value=stats.delayed_flights %}
+  {% include "partials/_stat_card.html" with icon="x-octagon" color="bg-icon-red" label="Cancelled" value=stats.cancelled_flights %}
+  {% include "partials/_stat_card.html" with icon="people" color="bg-icon-purple" label="Affected Passengers" value=stats.affected_passengers %}
+  {% include "partials/_stat_card.html" with icon="arrow-repeat" color="bg-icon-blue" label="Rebookings" value=stats.rebookings %}
+  {% include "partials/_stat_card.html" with icon="gift" color="bg-icon-green" label="Vouchers" value=stats.vouchers %}
+</div>
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-bold">Flight Operations (All Time)</div>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item d-flex justify-content-between">Total Flights <strong>{{ flight_ops.total_flights }}</strong></li>
+        <li class="list-group-item d-flex justify-content-between">Delayed <strong>{{ flight_ops.delayed }}</strong></li>
+        <li class="list-group-item d-flex justify-content-between">Cancelled <strong>{{ flight_ops.cancelled }}</strong></li>
+        <li class="list-group-item d-flex justify-content-between">Completed <strong>{{ flight_ops.completed }}</strong></li>
+      </ul>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-bold">Passenger Recovery (All Time)</div>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item d-flex justify-content-between">Rebooking Requests <strong>{{ passenger_recovery.rebooking_requests }}</strong></li>
+        <li class="list-group-item d-flex justify-content-between">Refund Requests <strong>{{ passenger_recovery.refund_requests }}</strong></li>
+        <li class="list-group-item d-flex justify-content-between">Vouchers Used <strong>{{ passenger_recovery.voucher_usage }}</strong></li>
+        <li class="list-group-item d-flex justify-content-between">Vouchers Active <strong>{{ passenger_recovery.vouchers_active }}</strong></li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

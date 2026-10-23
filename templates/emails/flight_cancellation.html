@@ -1,0 +1,14 @@
+{% extends "emails/_base_email.html" %}
+{% block body %}
+<h3>Flight {{ flight.flight_number }} Cancelled</h3>
+<p>Dear {{ booking.contact_name|default:booking.passenger.get_full_name }},</p>
+<p>We regret to inform you that your flight <strong>{{ flight.flight_number }}</strong> ({{ flight.route_label }}) has been cancelled.</p>
+<p><strong>Reason:</strong> {{ reason|default:"Operational issue" }}</p>
+{% if passengers %}
+<p><strong>Affected Passengers (PNR {{ booking.pnr }}):</strong></p>
+<ul>
+  {% for p in passengers %}<li>{{ p.full_name }}</li>{% endfor %}
+</ul>
+{% endif %}
+<p>You are eligible for rebooking, a full refund, and applicable vouchers for your whole party. Please log in to AeroFlow to choose your recovery option.</p>
+{% endblock %}

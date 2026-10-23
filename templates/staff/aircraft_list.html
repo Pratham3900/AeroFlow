@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load icons %}
+{% block title %}Manage Aircraft{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold mb-0">{% icon "airplane" class_="text-primary" %} Manage Aircraft</h4>
+  <a href="{% url 'flights:staff_aircraft_add' %}" class="btn btn-primary btn-sm">{% icon "plus-lg" %} Add Aircraft</a>
+</div>
+<div class="row g-3">
+  {% for a in aircraft %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="fw-bold">{{ a.name }}</div>
+            <div class="text-muted small">{{ a.model }}</div>
+          </div>
+          {% if a.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
+        </div>
+        <hr>
+        <p class="small mb-1"><strong>Total capacity:</strong> {{ a.total_capacity }} seats</p>
+        <ul class="list-unstyled small mb-3">
+          {% for category, count in a.category_breakdown %}
+          <li><span class="seat-legend-swatch" style="background:{{ category.color }};display:inline-block;width:0.8rem;height:0.8rem;border-radius:4px;"></span> {{ category.name }}: {{ count }} seats (x{{ category.price_multiplier }})</li>
+          {% endfor %}
+        </ul>
+        <form method="post" action="{% url 'flights:staff_aircraft_toggle_active' a.pk %}">
+          {% csrf_token %}
+          <button class="btn btn-sm btn-outline-secondary w-100">{% if a.is_active %}Deactivate{% else %}Activate{% endif %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <p class="text-muted">No aircraft configured yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

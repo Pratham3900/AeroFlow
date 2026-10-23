@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load icons %}
+{% block title %}Staff Dashboard{% endblock %}
+{% block content %}
+<div class="hero-banner mb-4">
+  <h3 class="fw-bold mb-1">{% icon "person-badge" %} Airline Staff Dashboard</h3>
+  <p class="mb-0 opacity-75">Operational overview and disruption management.</p>
+</div>
+
+<div class="row g-3 mb-4">
+  {% include "partials/_stat_card.html" with icon="airplane" color="bg-icon-navy" label="Total Flights" value=total_flights %}
+  {% include "partials/_stat_card.html" with icon="calendar-day" color="bg-icon-blue" label="Today's Flights" value=todays_flights %}
+  {% include "partials/_stat_card.html" with icon="alarm" color="bg-icon-amber" label="Delayed" value=delayed_flights %}
+  {% include "partials/_stat_card.html" with icon="x-octagon" color="bg-icon-red" label="Cancelled" value=cancelled_flights %}
+  {% include "partials/_stat_card.html" with icon="people" color="bg-icon-purple" label="Affected Passengers" value=affected_passengers %}
+  {% include "partials/_stat_card.html" with icon="arrow-repeat" color="bg-icon-green" label="Pending Rebookings" value=pending_rebookings %}
+</div>
+<div class="row g-3 mb-4">
+  {% include "partials/_stat_card.html" with icon="cash-coin" color="bg-icon-navy" label="Pending Refunds" value=pending_refunds %}
+  {% include "partials/_stat_card.html" with icon="gift" color="bg-icon-blue" label="Active Vouchers" value=active_vouchers %}
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><a href="{% url 'flights:staff_flight_list' %}" class="btn btn-outline-primary w-100 py-3">{% icon "airplane" class_="d-block fs-3 mb-1" %}Manage Flights</a></div>
+  <div class="col-md-3"><a href="{% url 'recovery:staff_requests_dashboard' %}" class="btn btn-outline-warning w-100 py-3">{% icon "life-preserver" class_="d-block fs-3 mb-1" %}Manage Requests</a></div>
+  <div class="col-md-3"><a href="{% url 'core:manage_passengers' %}" class="btn btn-outline-secondary w-100 py-3">{% icon "people" class_="d-block fs-3 mb-1" %}Manage Passengers</a></div>
+  <div class="col-md-3"><a href="{% url 'reports:daily_report' %}" class="btn btn-outline-success w-100 py-3">{% icon "file-earmark-bar-graph" class_="d-block fs-3 mb-1" %}Reports</a></div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-bold">Recent Disruptions</div>
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead class="table-light"><tr><th>Booking</th><th>Flight</th><th>Type</th><th>Eligible</th><th>When</th></tr></thead>
+      <tbody>
+        {% for d in recent_disruptions %}
+        <tr>
+          <td>{{ d.booking.pnr }}</td>
+          <td>{{ d.flight.flight_number }}</td>
+          <td>{{ d.get_disruption_type_display }}</td>
+          <td>{% if d.eligible_for_recovery %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+          <td>{{ d.created_at|date:"d M, H:i" }}</td>
+        </tr>
+        {% empty %}<tr><td colspan="5" class="text-center text-muted py-3">No disruptions yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load aeroflow_extras icons %}
+{% block title %}Booking {{ booking.pnr }}{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-bold">Booking {{ booking.pnr }}</span>
+        <span class="badge bg-{{ booking.status|status_badge }} status-badge">{{ booking.get_status_display }}</span>
+      </div>
+      <div class="card-body">
+        <div class="row g-3 mb-3">
+          <div class="col-md-6"><div class="text-muted small">Flight</div><div class="fw-semibold">{{ booking.flight.flight_number }} - {{ booking.flight.airline_name }}</div></div>
+          <div class="col-md-6"><div class="text-muted small">Route</div><div class="fw-semibold route-badge">{{ booking.flight.route_label }}</div></div>
+          <div class="col-md-6"><div class="text-muted small">Departure</div><div class="fw-semibold">{{ booking.flight.departure_date }} at {{ booking.flight.departure_time }}</div></div>
+          <div class="col-md-6"><div class="text-muted small">Flight Status</div><div><span class="badge bg-{{ booking.flight.status|status_badge }}">{{ booking.flight.get_status_display }}</span></div></div>
+          <div class="col-md-6"><div class="text-muted small">Category</div><div class="fw-semibold">{{ booking.travel_class }}</div></div>
+          <div class="col-md-6"><div class="text-muted small">Payment</div><div class="fw-semibold">Rs. {{ booking.payment_amount }} - {{ booking.get_payment_status_display }}</div></div>
+          <div class="col-md-6"><div class="text-muted small">Terminal / Gate</div><div class="fw-semibold">{{ booking.flight.origin_terminal|default:"TBD" }} / {{ booking.flight.origin_gate|default:"TBD" }}</div></div>
+          <div class="col-md-6"><div class="text-muted small">Boarding Time</div><div class="fw-semibold">{{ booking.flight.boarding_time|default:"To be announced" }}</div></div>
+        </div>
+
+        <hr>
+        <h6 class="fw-bold mb-2">{% icon "person-lines-fill" %} Booking Contact</h6>
+        <p class="small text-muted mb-3">{{ booking.contact_name }} &middot; {{ booking.contact_email }} &middot; {{ booking.contact_phone }}</p>
+
+        <h6 class="fw-bold mb-2">{% icon "people" %} Passengers ({{ booking.passenger_count }})</h6>
+        <div class="table-responsive mb-3">
+          <table class="table table-light">
+            <thead><tr><th>#</th><th>Name</th><th>Type</th><th>Seat</th><th>Category</th><th>Fare</th></tr></thead>
+            <tbody>
+              {% for p in booking.booking_passengers.all %}
+              <tr>
+                <td>{{ forloop.counter }}{% if p.is_primary %} <span class="badge bg-secondary">Primary</span>{% endif %}</td>
+                <td>{{ p.full_name }}</td>
+                <td>{{ p.get_passenger_type_display }}</td>
+                <td>{{ p.seat_number|default:"TBD" }}</td>
+                <td>{{ p.seat_category.name|default:"-" }}</td>
+                <td>Rs. {{ p.fare }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <h6 class="fw-bold mb-2">{% icon "file-earmark-pdf" %} Boarding Pass</h6>
+        {% if boarding_open %}
+        <div class="table-responsive mb-3">
+          <table class="table">
+            <tbody>
+              {% for p in booking.booking_passengers.all %}
+              <tr>
+                <td>{{ p.full_name }}</td>
+                <td><a href="{% url 'bookings:boarding_pass' p.pk %}" target="_blank" class="btn btn-sm btn-outline-primary">{% icon "file-earmark-pdf" %} Download</a></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info d-flex align-items-center gap-2 mb-3">
+          {% icon "shield-lock" %}
+          <div>
+            <strong>Not Available Yet.</strong> Your boarding pass will be generated automatically when the airline changes this flight's status to Boarding.
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="d-flex gap-2 flex-wrap">
+          <a href="{% url 'bookings:receipt' booking.pk %}" target="_blank" class="btn btn-outline-secondary btn-sm">{% icon "download" %} Booking Receipt</a>
+          {% if booking.is_active %}
+          <a href="{% url 'bookings:reschedule_search' booking.pk %}" class="btn btn-outline-primary btn-sm">{% icon "arrow-repeat" %} Reschedule</a>
+          <a href="{% url 'bookings:cancel' booking.pk %}" class="btn btn-outline-danger btn-sm">{% icon "cancel" %} Cancel Booking</a>
+          {% endif %}
+          {% if booking.status == "CANCELLED" %}
+          <a href="{% url 'bookings:cancellation_receipt' booking.pk %}" target="_blank" class="btn btn-outline-secondary btn-sm">{% icon "download" %} Cancellation Receipt</a>
+          {% endif %}
+          {% if booking.flight.is_disrupted %}
+          <a href="{% url 'recovery:recovery_page' booking.pk %}" class="btn btn-warning btn-sm">{% icon "life-preserver" %} View Recovery Options</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    {% if booking.flight.is_disrupted %}
+    <div class="card shadow-sm border-warning mb-3">
+      <div class="card-body">
+        <h6 class="fw-bold text-warning">{% icon "exclamation-triangle" %} Flight Disrupted</h6>
+        <p class="small mb-0">
+          {% if booking.flight.status == "DELAYED" %}
+          Cumulative delay: {{ booking.flight.delay_minutes }} minutes. Reason: {{ booking.flight.delay_reason }}
+          {% else %}
+          This flight has been cancelled. Reason: {{ booking.flight.cancellation_reason }}
+          {% endif %}
+        </p>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if facilities %}
+    <div class="card shadow-sm mb-3">
+      <div class="card-header bg-white fw-bold small">{% icon "gift" %} Facility Eligibility</div>
+      <ul class="list-group list-group-flush">
+        {% for f in facilities %}
+        <li class="list-group-item d-flex justify-content-between small">
+          {{ f.get_facility_type_display }}
+          <span class="badge bg-{{ f.status|status_badge }}">{{ f.get_status_display }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if booking.status == "CANCELLED" and booking.cancellation %}
+    <div class="card shadow-sm mb-3">
+      <div class="card-header bg-white fw-bold small">{% icon "cash-coin" %} Refund</div>
+      <div class="card-body small">
+        <p class="mb-1">Eligibility: <strong>{% if booking.cancellation.refund_eligible %}Eligible{% else %}Not Eligible{% endif %}</strong></p>
+        {% if booking.cancellation.refund %}
+        <p class="mb-1">Amount: Rs. {{ booking.cancellation.refund.amount }}</p>
+        <p class="mb-0">Status: {{ booking.cancellation.refund.get_status_display }}</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if booking.rebooked_from %}
+    <div class="card shadow-sm">
+      <div class="card-body small">
+        <strong>History:</strong> Rebooked from PNR {{ booking.rebooked_from.pnr }}
+        ({{ booking.get_rebook_reason_display }})
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
